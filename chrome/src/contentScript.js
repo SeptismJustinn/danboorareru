@@ -10,34 +10,38 @@
 
 // For more information on Content Scripts,
 // See https://developer.chrome.com/extensions/content_scripts
+// Check if danbooru
+const danbooru =
+  document.URL.includes('danbooru') && document.URL.includes('posts');
 
-// Log `title` of current active web page
-const pageTitle = document.head.getElementsByTagName('title')[0].innerHTML;
-console.log(
-  `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
-);
+if (danbooru) {
+  function getFilename() {
+    if (!danbooru) return null;
+    const characterSegment = document.querySelectorAll('.character-tag-list');
+    let charNameList;
+    for (const [idx, value] of characterSegment.entries()) {
+      if (value.tagName == 'UL') {
+        charNameList = characterSegment[idx].children;
+        break;
+      }
+    }
+    const charNames = [];
 
-// Communicate with background file by sending a message
-chrome.runtime.sendMessage(
-  {
-    type: 'GREETINGS',
-    payload: {
-      message: 'Hello, my name is Con. I am from ContentScript.',
-    },
-  },
-  (response) => {
-    console.log(response.message);
+    for (const listItem of charNameList) {
+      charNames.push(
+        listItem.querySelector('.search-tag').innerHTML.replace(' ', '')
+      );
+    }
+
+    const postID = document.querySelector('#post-info-id').innerHTML.split(' ');
+
+    const charNameComplex = charNames.reduce(
+      (complex, characterName) => complex + characterName,
+      ''
+    );
+
+    return `${charNameComplex}-${postID[1]}`;
   }
-);
 
-// Listen for message
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'COUNT') {
-    console.log(`Current count is ${request.payload.count}`);
-  }
-
-  // Send an empty response
-  // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
-  sendResponse({});
-  return true;
-});
+  chrome.runtime.sendMessage({ danbooru, filename: getFilename() });
+}
