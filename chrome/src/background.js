@@ -1,21 +1,49 @@
 'use strict';
+const storageCache = {};
+async function initStorageCache() {
+  chrome.storage.sync.get().then((items) => {
+    // Copy the data retrieved from storage into storageCache.
+    Object.assign(storageCache, items);
+  });
+}
 
-// With background scripts you can communicate with popup
-// and contentScript files.
-// For more information on background script,
-// See https://developer.chrome.com/extensions/background_pages
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'imagedownloader70013910',
+    title: 'Pre-filled image save',
+    contexts: ['image'],
+  });
+});
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GREETINGS') {
-    const message = `Hi ${
-      sender.tab ? 'Con' : 'Pop'
-    }, my name is Bac. I am from Background. It's great to hear from you.`;
+chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
+  async function suggest() {
+    // Load settings
+    try {
+      await initStorageCache();
+    } catch (error) {
+      console.log('Error loading settings');
+      return false;
+    }
+    // Get from settings
+    const subdir = storageCache.subdirectory || 'danboorareru';
+    const newFilename = storageCache.newFilename;
 
-    // Log message coming from the `request` parameter
-    console.log(request.payload.message);
-    // Send a response message
-    sendResponse({
-      message,
+    _suggest({
+      filename: `${subdir}/${newFilename || downloadItem.filename}`,
+      conflictAction: 'prompt',
     });
   }
+  suggest();
+  return true;
 });
+
+chrome.contextMenus.onClicked.addListener((item, tab) => {
+  // throw new Error(JSON.stringify(item));
+  // Needed to access downloadItem to get original filename as fallback
+  chrome.downloads.download({
+    url: item.srcUrl,
+    conflictAction: 'prompt',
+  });
+});
+
+// For saveas?
