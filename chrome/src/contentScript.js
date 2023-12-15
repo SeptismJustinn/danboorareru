@@ -27,10 +27,12 @@ if (danbooru) {
     }
     const charNames = [];
 
-    for (const listItem of charNameList) {
-      charNames.push(
-        listItem.querySelector('.search-tag').innerHTML.replace(' ', '')
-      );
+    if (charNameList) {
+      for (const listItem of charNameList) {
+        charNames.push(
+          listItem.querySelector('.search-tag').innerHTML.replace(' ', '')
+        );
+      }
     }
 
     const postID = document.querySelector('#post-info-id').innerHTML.split(' ');
