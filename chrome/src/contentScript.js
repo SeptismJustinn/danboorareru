@@ -30,7 +30,7 @@ if (danbooru) {
     if (charNameList) {
       for (const listItem of charNameList) {
         charNames.push(
-          listItem.querySelector('.search-tag').innerHTML.replace(' ', '')
+          listItem.querySelector('.search-tag').innerHTML.replace(/ /gm, '')
         );
       }
     }

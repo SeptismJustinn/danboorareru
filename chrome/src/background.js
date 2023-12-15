@@ -23,12 +23,25 @@ function getFilename() {
       break;
     }
   }
-  const charNames = [];
+  const listItemNames = [];
 
   for (const listItem of charNameList) {
-    charNames.push(
-      listItem.querySelector('.search-tag').innerHTML.replace(' ', '')
+    listItemNames.push(
+      listItem.querySelector('.search-tag').innerHTML.replace(/ /gm, '')
     );
+  }
+
+  const charNames = [];
+  let name;
+
+  for (let i = 0; i < listItemNames.length; i++) {
+    const nextName = listItemNames[i];
+    if (name && nextName.includes(name)) {
+      continue;
+    }
+    // Remove parentheses descriptors from names
+    name = nextName.split('(')[0];
+    charNames.push(name);
   }
 
   const postID = document.querySelector('#post-info-id').innerHTML.split(' ');
