@@ -1,7 +1,7 @@
 {
-  "name": "chrome",
+  "name": "danboorareru",
   "version": "0.1.0",
-  "description": "My Chrome Extension",
+  "description": "Danboorareru: Image downloader with automatic naming",
   "private": true,
   "scripts": {
     "watch": "webpack --mode=development --watch --config config/webpack.config.js",
