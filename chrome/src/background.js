@@ -14,17 +14,79 @@ async function getTabId() {
   return tab.id;
 }
 
-function getFilename() {
-  const characterSegment = document.querySelectorAll('.character-tag-list');
-  let charNameList;
-  for (const [idx, value] of characterSegment.entries()) {
-    if (value.tagName == 'UL') {
-      charNameList = characterSegment[idx].children;
-      break;
+function getFilepath(storageTags) {
+  function findTagList(className) {
+    const segment = document.querySelectorAll(className);
+    let tagList;
+    for (const [idx, value] of segment.entries()) {
+      if (value.tagName == 'UL') {
+        tagList = segment[idx].children;
+        break;
+      }
     }
+    console.log(tagList);
+    return tagList;
   }
-  const listItemNames = [];
+  function findPresentTags(tagList, targetTags) {
+    let output = '';
+    for (const listItem of tagList) {
+      const tagString = listItem.querySelector('.search-tag').innerHTML;
+      if (targetTags.includes(tagString)) output += tagString;
+    }
+    return output;
+  }
 
+  const savedTags = storageTags ?? [];
+  const generals = [];
+  const artists = [];
+  const copyrights = [];
+  const characters = [];
+  const metas = [];
+  savedTags.forEach((item) => {
+    switch (item.charAt(0)) {
+      case '0':
+        generals.push(item.substr(2));
+        break;
+      case '1':
+        artists.push(item.substr(2));
+        break;
+      case '3':
+        copyrights.push(item.substr(2));
+        break;
+      case '4':
+        characters.push(item.substr(2));
+        break;
+      case '5':
+        metas.push(item.substr(2));
+        break;
+    }
+  });
+  let subdir = '';
+  // Arranged as per how Danbooru displays them
+  if (artists.length > 0) {
+    const artistList = findTagList('.artist-tag-list');
+    subdir += findPresentTags(artistList, artists);
+  }
+  if (copyrights.length > 0) {
+    const copyrightList = findTagList('.copyright-tag-list');
+    subdir += findPresentTags(copyrightList, copyrights);
+  }
+  if (characters.length > 0) {
+    const characterList = findTagList('.character-tag-list');
+    subdir += findPresentTags(characterList, characters);
+  }
+  if (generals.length > 0) {
+    const generalList = findTagList('.general-tag-list');
+    subdir += findPresentTags(generalList, generals);
+  }
+  if (metas.length > 0) {
+    const metaList = findTagList('.meta-tag-list');
+    subdir += findPresentTags(metaList, metas);
+  }
+
+  // For now, combining filepath and subdir into 1 method
+  const charNameList = findTagList('.character-tag-list');
+  const listItemNames = [];
   for (const listItem of charNameList) {
     listItemNames.push(
       listItem.querySelector('.search-tag').innerHTML.replace(/ /gm, '')
@@ -51,7 +113,9 @@ function getFilename() {
     ''
   );
 
-  return `${charNameComplex}-${postID[1]}`;
+  return `${subdir == '' ? subdir : subdir + '/'}${charNameComplex}-${
+    postID[1]
+  }`;
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -62,17 +126,8 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// const messageListener = chrome.runtime.onMessage.addListener((message) => {
-//   console.log(message);
-//   console.log(message.danbooru);
-//   if (message.danbooru) {
-//     storageCache.newFilename = message.filename;
-//     console.log(storageCache);
-//   }
-// });
-
 chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
-  console.log(JSON.stringify(downloadItem));
+  // console.log(JSON.stringify(downloadItem));
   async function suggest() {
     // Load settings
     try {
@@ -81,19 +136,19 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
       await chrome.scripting
         .executeScript({
           target: { tabId: await getTabId() },
-          func: getFilename,
+          func: getFilepath,
+          args: [storageCache.savedTags],
         })
         .then((result) => {
           storageCache.newFilename = result[0]['result'];
         });
     } catch (error) {
-      console.log('Error loading settings');
+      console.error('Error loading settings');
       return false;
     }
     // Get from settings
     const subdir = storageCache.subdirectory || 'danboorareru';
     const newFilename = storageCache.newFilename;
-    console.log(storageCache);
     _suggest({
       filename: `${subdir}/${newFilename || downloadItem.filename}.png`,
       conflictAction: 'prompt',

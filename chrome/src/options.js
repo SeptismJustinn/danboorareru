@@ -41,7 +41,6 @@ function mapSavedTags(savedTags) {
   optionsSavedTags.innerHTML = '';
   savedTags.forEach((tag) => {
     const [tagCat, tagName] = tag.split(':');
-    console.log(tag);
     const listItem = document.createElement('li');
     listItem.innerHTML = `${
       categories[parseInt(tagCat)]
