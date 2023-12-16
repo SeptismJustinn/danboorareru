@@ -30,5 +30,6 @@
       "run_at": "document_idle",
       "js": ["contentScript.js"]
     }
-  ]
+  ],
+  "options_page": "options.html"
 }
