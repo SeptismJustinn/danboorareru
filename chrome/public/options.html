@@ -5,20 +5,23 @@
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <select id="color">
-      <option value="red">red</option>
-      <option value="green">green</option>
-      <option value="blue">blue</option>
-      <option value="yellow">yellow</option>
-    </select>
-
-    <label>
-      <input type="checkbox" id="like" />
-      I like colors.
-    </label>
-
-    <div id="status"></div>
-    <button id="save">Save</button>
+    <div id="main-container">
+      <div class="section" id="tag-container">
+        <h2 class="paragraph">Add Tags to create subdirectories for</h2>
+        <div>
+          <div id="tag-search-container">
+            <h4>Search Danbooru for a tag:</h4>
+            <input type="text" id="tag-search-input" />
+            <input type="button" id="tag-search-submit" value="Search" />
+          </div>
+          <hr />
+          <ul id="tag-search-output"></ul>
+        </div>
+        <hr />
+        <h4>Currently creating subdirectories for the following tags:</h4>
+        <ul id="options-saved-tags"></ul>
+      </div>
+    </div>
 
     <script src="options.js"></script>
   </body>
