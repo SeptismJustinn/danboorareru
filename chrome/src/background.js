@@ -127,7 +127,10 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
-  // console.log(JSON.stringify(downloadItem));
+  if (downloadItem.byExtensionName != 'Danboorareru') {
+    return false;
+  }
+  console.log(JSON.stringify(downloadItem));
   async function suggest() {
     // Load settings
     try {
@@ -144,6 +147,7 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
         });
     } catch (error) {
       console.error('Error loading settings');
+      console.log(error.message);
       return false;
     }
     // Get from settings
@@ -159,12 +163,14 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
 });
 
 chrome.contextMenus.onClicked.addListener((item, tab) => {
-  // throw new Error(JSON.stringify(item));
+  console.log('Context item', JSON.stringify(item));
   // Needed to access downloadItem to get original filename as fallback
-  chrome.downloads.download({
-    url: item.srcUrl,
-    conflictAction: 'prompt',
-  });
+  if (item.menuItemId == 'imagedownloader70013910') {
+    chrome.downloads.download({
+      url: item.srcUrl,
+      conflictAction: 'prompt',
+    });
+  }
 });
 
 // For saveas?
