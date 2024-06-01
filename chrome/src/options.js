@@ -79,7 +79,9 @@ async function searchTag(event) {
       } posts. <input type="button" class="add-tag-button" value="+" />`;
       listItem
         .querySelector('.add-tag-button')
-        .addEventListener('click', () => addTag(`${res.category}:${res.name}`));
+        .addEventListener('click', () =>
+          addTag(`${res.category}:${res.name.replace('_', ' ')}`)
+        );
       tagSearchOutput.appendChild(listItem);
     });
   }
