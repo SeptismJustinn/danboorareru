@@ -80,7 +80,7 @@ async function searchTag(event) {
       listItem
         .querySelector('.add-tag-button')
         .addEventListener('click', () =>
-          addTag(`${res.category}:${res.name.replace('_', ' ')}`)
+          addTag(`${res.category}:${res.name.replaceAll('_', ' ')}`)
         );
       tagSearchOutput.appendChild(listItem);
     });
