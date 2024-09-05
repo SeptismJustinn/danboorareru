@@ -4,6 +4,25 @@ import './options.css';
 
 const storageCache = {};
 
+const saveOriginalPreferencesCheckbox = document.querySelector(
+  '#save-original-pref'
+);
+
+function mapPreferences(pref) {
+  saveOriginalPreferencesCheckbox.checked = pref?.saveOriginal ?? false;
+}
+
+function toggleSwitch(value, key) {
+  storageCache[key] = value;
+  const updatedPref = {};
+  updatedPref[key] = value;
+  chrome.storage.sync.set({ preferences: updatedPref });
+}
+
+saveOriginalPreferencesCheckbox.addEventListener('change', (e) =>
+  toggleSwitch(e.target.checked, 'saveOriginal')
+);
+
 // https://danbooru.donmai.us/wiki_pages/api%3Atags
 const categories = [
   '<span class="cat-general">General',
@@ -55,6 +74,9 @@ function mapSavedTags(savedTags) {
 function restoreOptions() {
   chrome.storage.sync.get(null).then((items) => {
     Object.assign(storageCache, items);
+    console.log(items);
+    const preferences = items.preferences;
+    mapPreferences(preferences);
     const savedTags = items.savedTags;
     mapSavedTags(savedTags);
   });

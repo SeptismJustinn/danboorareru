@@ -166,10 +166,21 @@ chrome.contextMenus.onClicked.addListener((item, tab) => {
   console.log('Context item', JSON.stringify(item));
   // Needed to access downloadItem to get original filename as fallback
   if (item.menuItemId == 'imagedownloader70013910') {
-    chrome.downloads.download({
-      url: item.srcUrl,
-      conflictAction: 'prompt',
-    });
+    if (storageCache.preferences?.saveOriginal) {
+      fetch(item.pageUrl.split('?', 1)[0] + '.json').then(async (response) => {
+        const postJson = await response.json();
+        const url = postJson.file_url ?? postJson.large_file_url ?? item.srcUrl;
+        chrome.downloads.download({
+          url,
+          conflictAction: 'prompt',
+        });
+      });
+    } else {
+      chrome.downloads.download({
+        url: item.srcUrl,
+        conflictAction: 'prompt',
+      });
+    }
   }
 });
 
