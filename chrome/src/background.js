@@ -126,6 +126,11 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+// Initialize preferences on page load
+chrome.webNavigation.onCompleted.addListener((details) => {
+  initStorageCache();
+});
+
 chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
   if (downloadItem.byExtensionName != 'Danboorareru') {
     return false;
@@ -134,6 +139,7 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
   async function suggest() {
     // Load settings
     try {
+      // Redudnant but just in case
       await initStorageCache();
       // await messageListener;
       await chrome.scripting
@@ -166,9 +172,11 @@ chrome.contextMenus.onClicked.addListener((item, tab) => {
   console.log('Context item', JSON.stringify(item));
   // Needed to access downloadItem to get original filename as fallback
   if (item.menuItemId == 'imagedownloader70013910') {
+    console.log('Storage Cache check', storageCache);
     if (storageCache.preferences?.saveOriginal) {
       fetch(item.pageUrl.split('?', 1)[0] + '.json').then(async (response) => {
         const postJson = await response.json();
+        // console.log('Post JSON: ', postJson);
         const url = postJson.file_url ?? postJson.large_file_url ?? item.srcUrl;
         chrome.downloads.download({
           url,

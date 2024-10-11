@@ -17,6 +17,7 @@
     "default_popup": "popup.html"
   },
   "permissions": [
+    "webNavigation",
     "storage",
     "downloads",
     "contextMenus",
