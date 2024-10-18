@@ -24,14 +24,18 @@ function getFilepath(storageTags) {
         break;
       }
     }
-    console.log(tagList);
     return tagList;
   }
   function findPresentTags(tagList, targetTags) {
     let output = '';
+
+    function formatTagNameToDirName(tag) {
+      return tag.replaceAll(':', '');
+    }
     for (const listItem of tagList) {
       const tagString = listItem.querySelector('.search-tag').innerHTML;
-      if (targetTags.includes(tagString)) output += tagString;
+      if (targetTags.includes(tagString))
+        output += formatTagNameToDirName(tagString);
     }
     return output;
   }

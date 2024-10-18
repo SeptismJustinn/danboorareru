@@ -82,6 +82,11 @@ function restoreOptions() {
   });
 }
 
+function formatTagName(tag) {
+  let result = tag.replaceAll('_', ' ');
+  return result;
+}
+
 async function searchTag(event) {
   event.preventDefault();
   tagSearchSubmit.disabled = true;
@@ -102,7 +107,7 @@ async function searchTag(event) {
       listItem
         .querySelector('.add-tag-button')
         .addEventListener('click', () =>
-          addTag(`${res.category}:${res.name.replaceAll('_', ' ')}`)
+          addTag(`${res.category}:${formatTagName(res.name)}`)
         );
       tagSearchOutput.appendChild(listItem);
     });
