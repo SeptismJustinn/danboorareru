@@ -67,8 +67,9 @@ function getFilepath(storageTags) {
   });
   let subdir = '';
   // Arranged as per how Danbooru displays them
+  // If no character names are found at all, name by artists
+  const artistList = findTagList('.artist-tag-list');
   if (artists.length > 0) {
-    const artistList = findTagList('.artist-tag-list');
     subdir += findPresentTags(artistList, artists);
   }
   if (copyrights.length > 0) {
@@ -89,8 +90,11 @@ function getFilepath(storageTags) {
   }
 
   // For now, combining filepath and subdir into 1 method
-  const charNameList = findTagList('.character-tag-list');
+  let charNameList = findTagList('.character-tag-list');
   const listItemNames = [];
+  if (!charNameList || charNameList?.length <= 0) {
+    charNameList = artistList;
+  }
   for (const listItem of charNameList) {
     listItemNames.push(
       listItem.querySelector('.search-tag').innerHTML.replace(/ /gm, '')
