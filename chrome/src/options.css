@@ -8,6 +8,10 @@
 }
 /* normalize css ends here */
 
+body {
+  font-size: 20px;
+}
+
 @media (prefers-color-scheme: dark) {
   body {
     background-color: rgb(40, 40, 40);
@@ -80,4 +84,15 @@
 
 #tag-search-output {
   margin: 1vh 1vw;
+  min-height: 20px;
+}
+
+.tag-list-item {
+  /* Account for increased font-size??? */
+  margin: 10px 0 10px 20px;
+}
+.remove-tag-button {
+  padding: 5px;
+  background-color: red;
+  color: white;
 }

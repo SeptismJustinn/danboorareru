@@ -14,7 +14,12 @@ async function getTabId() {
   return tab.id;
 }
 
-function getFilepath(storageTags) {
+/**
+ * V1 getFilepath
+ * @param {string[]} storageTags
+ * @returns
+ */
+function getFilepathV1(storageTags) {
   function findTagList(className) {
     const segment = document.querySelectorAll(className);
     let tagList;
@@ -126,6 +131,124 @@ function getFilepath(storageTags) {
   }`;
 }
 
+/**
+ * V2 getFilepath
+ * @param {Object[]} storageTags
+ * @returns
+ */
+function getFilepathV2(storageTags) {
+  function findTagList(className) {
+    const segment = document.querySelectorAll(className);
+    let tagList;
+    for (const [idx, value] of segment.entries()) {
+      if (value.tagName == 'UL') {
+        tagList = segment[idx].children;
+        break;
+      }
+    }
+    return tagList;
+  }
+  function findPresentTags(tagList, savedTags) {
+    let output = '';
+
+    const targetTags = savedTags.map((item) => item.name);
+    for (const listItem of tagList) {
+      const tagString = listItem.querySelector('.search-tag').innerHTML;
+      for (const savedTag of savedTags) {
+        if (savedTag.name == tagString) {
+          output += savedTag.designation;
+        }
+      }
+    }
+    return output;
+  }
+
+  const savedTags = storageTags ?? [];
+  const generals = [];
+  const artists = [];
+  const copyrights = [];
+  const characters = [];
+  const metas = [];
+  savedTags.forEach((item) => {
+    switch (String(item.category)) {
+      case '0':
+        generals.push(item);
+        break;
+      case '1':
+        artists.push(item);
+        break;
+      case '3':
+        copyrights.push(item);
+        break;
+      case '4':
+        characters.push(item);
+        break;
+      case '5':
+        metas.push(item);
+        break;
+    }
+  });
+  let subdir = '';
+  // Arranged as per how Danbooru displays them
+  // If no character names are found at all, name by artists
+  const artistList = findTagList('.artist-tag-list');
+  if (artists.length > 0) {
+    subdir += findPresentTags(artistList, artists);
+  }
+  if (copyrights.length > 0) {
+    const copyrightList = findTagList('.copyright-tag-list');
+    subdir += findPresentTags(copyrightList, copyrights);
+  }
+  if (characters.length > 0) {
+    const characterList = findTagList('.character-tag-list');
+    subdir += findPresentTags(characterList, characters);
+  }
+  if (generals.length > 0) {
+    const generalList = findTagList('.general-tag-list');
+    subdir += findPresentTags(generalList, generals);
+  }
+  if (metas.length > 0) {
+    const metaList = findTagList('.meta-tag-list');
+    subdir += findPresentTags(metaList, metas);
+  }
+
+  // For now, combining filepath and subdir into 1 method
+  let charNameList = findTagList('.character-tag-list');
+  const listItemNames = [];
+  if (!charNameList || charNameList?.length <= 0) {
+    charNameList = artistList;
+  }
+  for (const listItem of charNameList) {
+    listItemNames.push(
+      listItem.querySelector('.search-tag').innerHTML.replace(/ /gm, '')
+    );
+  }
+
+  const charNames = [];
+  let name;
+
+  for (let i = 0; i < listItemNames.length; i++) {
+    const nextName = listItemNames[i];
+    if (name && nextName.includes(name)) {
+      continue;
+    }
+    // Remove parentheses descriptors from names
+    name = nextName.split('(')[0];
+    charNames.push(name);
+  }
+
+  const postID = document.querySelector('#post-info-id').innerHTML.split(' ');
+
+  const charNameComplex = charNames.reduce(
+    (complex, characterName) => complex + characterName,
+    ''
+  );
+
+  return `${subdir == '' ? subdir : subdir + '/'}${charNameComplex}-${
+    postID[1]
+  }`;
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'imagedownloader70013910',
@@ -143,7 +266,7 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
   if (downloadItem.byExtensionName != 'Danboorareru') {
     return false;
   }
-  console.log(JSON.stringify(downloadItem));
+  console.log('DownloadItem', JSON.stringify(downloadItem));
   async function suggest() {
     // Load settings
     try {
@@ -153,15 +276,14 @@ chrome.downloads.onDeterminingFilename.addListener((downloadItem, _suggest) => {
       await chrome.scripting
         .executeScript({
           target: { tabId: await getTabId() },
-          func: getFilepath,
+          func: getFilepathV2,
           args: [storageCache.savedTags],
         })
         .then((result) => {
           storageCache.newFilename = result[0]['result'];
         });
     } catch (error) {
-      console.error('Error loading settings');
-      console.log(error.message);
+      console.error('Error loading settings\n', error.message);
       return false;
     }
     // Get from settings
@@ -182,6 +304,7 @@ chrome.contextMenus.onClicked.addListener((item, tab) => {
   if (item.menuItemId == 'imagedownloader70013910') {
     console.log('Storage Cache check', storageCache);
     if (storageCache.preferences?.saveOriginal) {
+      // Split to remove any queries.
       fetch(item.pageUrl.split('?', 1)[0] + '.json').then(async (response) => {
         const postJson = await response.json();
         // console.log('Post JSON: ', postJson);
