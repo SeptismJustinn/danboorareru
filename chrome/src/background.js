@@ -146,13 +146,19 @@ function getFilepathV2(storageTags) {
         break;
       }
     }
+    if (!tagList) {
+      console.warn(`No tagList obtained from class ${className}`);
+      return [];
+    }
     return tagList;
   }
   function findPresentTags(tagList, savedTags) {
     let output = '';
 
     const targetTags = savedTags.map((item) => item.name);
+    // console.log('Taglist', tagList);
     for (const listItem of tagList) {
+      // console.log('ListItem', listItem);
       const tagString = listItem.querySelector('.search-tag').innerHTML;
       for (const savedTag of savedTags) {
         if (savedTag.name == tagString) {
@@ -192,21 +198,26 @@ function getFilepathV2(storageTags) {
   // Arranged as per how Danbooru displays them
   // If no character names are found at all, name by artists
   const artistList = findTagList('.artist-tag-list');
+  // console.log('Checking artists', artists.length);
   if (artists.length > 0) {
     subdir += findPresentTags(artistList, artists);
   }
+  // console.log('Checking copyrights', copyrights.length);
   if (copyrights.length > 0) {
     const copyrightList = findTagList('.copyright-tag-list');
     subdir += findPresentTags(copyrightList, copyrights);
   }
+  // console.log('Checking chars', characters.length);
   if (characters.length > 0) {
     const characterList = findTagList('.character-tag-list');
     subdir += findPresentTags(characterList, characters);
   }
+  // console.log('Checking general', generals.length);
   if (generals.length > 0) {
     const generalList = findTagList('.general-tag-list');
     subdir += findPresentTags(generalList, generals);
   }
+  // console.log('Checking meta', metas.length);
   if (metas.length > 0) {
     const metaList = findTagList('.meta-tag-list');
     subdir += findPresentTags(metaList, metas);
